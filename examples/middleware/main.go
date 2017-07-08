@@ -51,7 +51,7 @@ func main() {
 	nc, _ := nats.Connect(nats.DefaultURL)
 
 	// Server
-	done, _ := Subscribe(ctx, nc, "subject", "id", Service{}, Logger("server"), Timer, Interceptor("output!"))
+	done, _ := SubscribeRPC(ctx, nc, "subject", "id", Service{}, Logger("server"), Timer, Interceptor("output!"))
 
 	// Client
 	client := NewRPC(nc, "subject", Logger("client"))

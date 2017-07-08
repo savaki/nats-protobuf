@@ -57,7 +57,7 @@ func NewRPC(nc *nats.Conn, subject string, filters ...nats_protobuf.Filter) RPC 
 	}
 }
 
-func Subscribe(ctx context.Context, nc *nats.Conn, subject, queue string, service RPC, filters ...nats_protobuf.Filter) (<-chan struct{}, error) {
+func SubscribeRPC(ctx context.Context, nc *nats.Conn, subject, queue string, service RPC, filters ...nats_protobuf.Filter) (<-chan struct{}, error) {
 	publishErr := func(reply string, err error) {
 		raw := &nats_protobuf.Message{Error: err.Error()}
 		if data, err := proto.Marshal(raw); err == nil {

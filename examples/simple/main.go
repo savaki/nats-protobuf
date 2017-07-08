@@ -22,7 +22,7 @@ func main() {
 	nc, _ := nats.Connect(nats.DefaultURL)
 
 	// Server
-	done, _ := Subscribe(ctx, nc, "subject", "id", Service{})
+	done, _ := SubscribeRPC(ctx, nc, "subject", "id", Service{})
 
 	// Client
 	client := NewRPC(nc, "subject")

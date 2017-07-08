@@ -72,7 +72,7 @@ func main() {
 	nc, _ := nats.Connect(nats.DefaultURL)
 
 	// Server
-	cancel, _ := Subscribe(ctx, nc, "subject", "id", Service{})
+	cancel, _ := SubscribeRPC(ctx, nc, "subject", "id", Service{})
 	defer cancel()
 
 	// Client
