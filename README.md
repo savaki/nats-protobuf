@@ -85,19 +85,6 @@ func main() {
 
 Additional examples can be found in the examples directory.
 
-## JSON over HTTP
-
-In addition to generating a client and server implementations, nats-rpc also generates an http proxy.   Given
-the same service.proto definition, we can write a web proxy as follows:
-
-```go
-nc, _ := nats.Connect(nats.DefaultURL)
-handler := ProxyRPC(nc, "subject")
-http.ListenAndServe(":8001", handler)
-```
-
-For a more detailed example of using nats over http see the ```examples/rest``` directory.
-
 ## Middleware
 
 Both ```Listen``` and ```New*``` accept an optional list of middleware
