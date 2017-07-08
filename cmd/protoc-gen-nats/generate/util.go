@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gogo/protobuf/gogoproto"
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 )
 
@@ -19,7 +20,7 @@ func String(in string) *string {
 	return &in
 }
 
-func name(in *descriptor.FileDescriptorProto, kind string) *string {
+func fileName(in *descriptor.FileDescriptorProto, kind string) *string {
 	n := "service"
 	if in.Name != nil {
 		n = *in.Name
@@ -56,10 +57,56 @@ func lower(in string) string {
 	return strings.ToLower(in)
 }
 
+func id(typeName string, messages []*descriptor.DescriptorProto) string {
+	name := base(typeName)
+	for _, message := range messages {
+		if name == *message.Name {
+			for _, field := range message.Field {
+				fieldName := *field.Name
+				if fieldName != "id" {
+					continue
+				}
+
+				name := gogoproto.GetCustomName(field)
+				if name != "" {
+					return name
+				}
+
+				return "Id"
+			}
+		}
+	}
+
+	return "Id"
+}
+
+func camel(in string) string {
+	segments := strings.Split(in, "_")
+	capped := make([]string, 0, len(segments))
+
+	for _, segment := range segments {
+		if segment == "" {
+			continue
+		}
+		capped = append(capped, strings.ToUpper(segment[0:1])+segment[1:])
+	}
+	return strings.Join(capped, "")
+}
+
+func name(field *descriptor.FieldDescriptorProto) string {
+	name := gogoproto.GetCustomName(field)
+	if name != "" {
+		return name
+	}
+
+	return camel(*field.Name)
+}
+
 func newTemplate(content string) (*template.Template, error) {
 	fn := map[string]interface{}{
 		"base":  base,
 		"lower": lower,
+		"name":  name,
 	}
 
 	return template.New("page").Funcs(fn).Parse(content)

@@ -26,6 +26,10 @@ func main() {
 
 	results := make([]*plugin_go.CodeGeneratorResponse_File, 0, len(req.ProtoFile))
 	for _, file := range req.ProtoFile {
+		if len(file.Service) == 0 {
+			continue
+		}
+
 		v, err := generate.RPC(file)
 		check(err)
 

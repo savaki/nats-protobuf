@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+package main;
+
+message In {
+    string input = 1;
+    string first = 2 [(gogoproto.customname) = "FirstName"];
+    string org_id = 3 [(gogoproto.customname) = "OrgID"];
+}
+
+message Out {
+    string output = 1;
+}
+
+service RPC {
+    rpc InOut (In) returns (Out);
+}
