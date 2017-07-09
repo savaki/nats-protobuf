@@ -41,6 +41,9 @@ type {{ $Service | lower }}Client struct {
 	if err != nil {
 		return nil, err
 	}
+	if reply == nil {
+		return nil, nil
+	}
 
 	result := &{{ .OutputType | base }}{}
 	err = proto.Unmarshal(reply.Payload, result)
@@ -111,13 +114,13 @@ func Subscribe{{ .Name }}(ctx context.Context, nc *nats.Conn, subject, queue str
 				return
 			}
 
-			if msg.Reply == "" {
-				return
-			}
-
 			v, err := fn(ctx, req)
 			if err != nil {
 				publishErr(msg.Reply, err)
+				return
+			}
+
+			if msg.Reply == "" {
 				return
 			}
 

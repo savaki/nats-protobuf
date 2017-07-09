@@ -7,6 +7,7 @@ import (
 
 	"github.com/nats-io/go-nats"
 	"github.com/savaki/nats-protobuf"
+	"github.com/savaki/nats-protobuf/examples"
 )
 
 //go:generate protoc --go_out=. service.proto
@@ -15,8 +16,8 @@ import (
 type Service struct {
 }
 
-func (s Service) InOut(ctx context.Context, in *In) (*Out, error) {
-	return &Out{Output: "Hello " + in.Input}, nil
+func (s Service) InOut(ctx context.Context, in *examples.In) (*examples.Out, error) {
+	return &examples.Out{Output: "Hello " + in.Input}, nil
 }
 
 func Timer(fn nats_protobuf.HandlerFunc) nats_protobuf.HandlerFunc {
@@ -41,7 +42,7 @@ func Logger(label string) nats_protobuf.Filter {
 func Interceptor(output string) nats_protobuf.Filter {
 	return func(fn nats_protobuf.HandlerFunc) nats_protobuf.HandlerFunc {
 		return func(ctx context.Context, msg *nats_protobuf.Message) (*nats_protobuf.Message, error) {
-			return nats_protobuf.NewMessage(msg.Method, &Out{Output: output})
+			return nats_protobuf.NewMessage(msg.Method, &examples.Out{Output: output})
 		}
 	}
 }
@@ -51,12 +52,12 @@ func main() {
 	nc, _ := nats.Connect(nats.DefaultURL)
 
 	// Server
-	done, _ := SubscribeRPC(ctx, nc, "subject", "id", Service{}, Logger("server"), Timer, Interceptor("output!"))
+	done, _ := examples.SubscribeRPC(ctx, nc, "subject", "id", Service{}, Logger("server"), Timer, Interceptor("output!"))
 
 	// Client
-	client := NewRPC(nc, "subject", Logger("client"))
+	client := examples.NewRPC(nc, "subject", Logger("client"))
 
-	out, _ := client.InOut(ctx, &In{Input: "Joe"})
+	out, _ := client.InOut(ctx, &examples.In{Input: "Joe"})
 	fmt.Println(out.Output)
 
 	cancel() // stop the service

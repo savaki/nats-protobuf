@@ -41,6 +41,21 @@ func NewRequestFunc(nc *nats.Conn, subject string) HandlerFunc {
 	}
 }
 
+// PublishOnly sends the message using nats.Publish rather than nats.Request allowing for multiple
+// receivers.  Note that when using PublishOnly, the response object will always be nil.
+func PublishOnly(nc *nats.Conn, subject string) Filter {
+	return func(fn HandlerFunc) HandlerFunc {
+		return func(ctx context.Context, m *Message) (*Message, error) {
+			data, err := proto.Marshal(m)
+			if err != nil {
+				return nil, err
+			}
+
+			return nil, nc.Publish(subject, data)
+		}
+	}
+}
+
 // NewPublishFunc generates a new HandlerFunc that uses nats.Publish
 func NewPublishFunc(nc *nats.Conn, subject string) HandlerFunc {
 	return func(ctx context.Context, m *Message) (*Message, error) {

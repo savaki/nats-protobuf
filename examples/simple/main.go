@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/nats-io/go-nats"
+	"github.com/savaki/nats-protobuf/examples"
 )
 
 //go:generate protoc --go_out=. service.proto
@@ -13,8 +14,8 @@ import (
 type Service struct {
 }
 
-func (s Service) InOut(ctx context.Context, in *In) (*Out, error) {
-	return &Out{Output: "Hello " + in.Input}, nil
+func (s Service) InOut(ctx context.Context, in *examples.In) (*examples.Out, error) {
+	return &examples.Out{Output: "Hello " + in.Input}, nil
 }
 
 func main() {
@@ -22,12 +23,12 @@ func main() {
 	nc, _ := nats.Connect(nats.DefaultURL)
 
 	// Server
-	done, _ := SubscribeRPC(ctx, nc, "subject", "id", Service{})
+	done, _ := examples.SubscribeRPC(ctx, nc, "subject", "id", Service{})
 
 	// Client
-	client := NewRPC(nc, "subject")
+	client := examples.NewRPC(nc, "subject")
 
-	out, _ := client.InOut(ctx, &In{Input: "Joe"})
+	out, _ := client.InOut(ctx, &examples.In{Input: "Joe"})
 	fmt.Println(out.Output)
 
 	cancel() // stop the service

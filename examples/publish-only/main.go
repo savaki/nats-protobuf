@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"time"
+
 	"github.com/nats-io/go-nats"
+	"github.com/savaki/nats-protobuf"
 	"github.com/savaki/nats-protobuf/examples"
 )
 
@@ -16,23 +18,27 @@ type Service struct {
 }
 
 func (s Service) InOut(ctx context.Context, in *examples.In) (*examples.Out, error) {
-	return nil, errors.New("boom!")
+	fmt.Printf("InOut(%v)\n", in.Input)
+	return &examples.Out{Output: "Hello " + in.Input}, nil
 }
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	nc, _ := nats.Connect(nats.DefaultURL)
+	defer nc.Close()
 
 	// Server
-	done, _ := examples.SubscribeRPC(ctx, nc, "subject", "id", Service{})
-	defer cancel()
+	subject := "subject"
+	done, _ := examples.SubscribeRPC(ctx, nc, subject, "id", Service{})
 
 	// Client
-	client := examples.NewRPC(nc, "subject")
+	client := examples.NewRPC(nc, subject,
+		nats_protobuf.PublishOnly(nc, subject),
+	)
 
-	_, err := client.InOut(ctx, &examples.In{Input: "Joe"})
-	fmt.Println(err)
+	client.InOut(ctx, &examples.In{Input: "Joe"})
 
+	time.Sleep(time.Millisecond * 250)
 	cancel() // stop the service
 	<-done   // wait for it to unsubscribe
 }
