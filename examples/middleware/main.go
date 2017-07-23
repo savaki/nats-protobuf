@@ -21,27 +21,27 @@ func (s Service) InOut(ctx context.Context, in *examples.In) (*examples.Out, err
 }
 
 func Timer(fn nats_protobuf.HandlerFunc) nats_protobuf.HandlerFunc {
-	return func(ctx context.Context, msg *nats_protobuf.Message) (*nats_protobuf.Message, error) {
+	return func(ctx context.Context, subject string, msg *nats_protobuf.Message) (*nats_protobuf.Message, error) {
 		started := time.Now()
 		defer func() {
-			fmt.Println("elapsed:", time.Now().Sub(started))
+			fmt.Printf("%v: elapsed - %v\n", subject, time.Now().Sub(started))
 		}()
-		return fn(ctx, msg)
+		return fn(ctx, subject, msg)
 	}
 }
 
 func Logger(label string) nats_protobuf.Filter {
 	return func(fn nats_protobuf.HandlerFunc) nats_protobuf.HandlerFunc {
-		return func(ctx context.Context, msg *nats_protobuf.Message) (*nats_protobuf.Message, error) {
-			fmt.Println(label, msg.Method)
-			return fn(ctx, msg)
+		return func(ctx context.Context, subject string, msg *nats_protobuf.Message) (*nats_protobuf.Message, error) {
+			fmt.Printf("%v: %v %v\n", subject, label, msg.Method)
+			return fn(ctx, subject, msg)
 		}
 	}
 }
 
 func Interceptor(output string) nats_protobuf.Filter {
 	return func(fn nats_protobuf.HandlerFunc) nats_protobuf.HandlerFunc {
-		return func(ctx context.Context, msg *nats_protobuf.Message) (*nats_protobuf.Message, error) {
+		return func(ctx context.Context, subject string, msg *nats_protobuf.Message) (*nats_protobuf.Message, error) {
 			return nats_protobuf.NewMessage(msg.Method, &examples.Out{Output: output})
 		}
 	}

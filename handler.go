@@ -9,7 +9,7 @@ import (
 )
 
 // HandlerFunc provides an abstraction over the call to nats.  Useful for defining middleware.
-type HandlerFunc func(ctx context.Context, m *Message) (*Message, error)
+type HandlerFunc func(ctx context.Context, subject string, m *Message) (*Message, error)
 
 // Filter defines the shape of the middleware.  Both ```Subscribe``` and ```New*``` accept an optional list of middlewares
 // that will be applied in FIFO order
@@ -17,7 +17,7 @@ type Filter func(requestFunc HandlerFunc) HandlerFunc
 
 // NewRequestFunc generates a new HandlerFunc that uses nats.Request
 func NewRequestFunc(nc *nats.Conn, subject string) HandlerFunc {
-	return func(ctx context.Context, m *Message) (*Message, error) {
+	return func(ctx context.Context, _ string, m *Message) (*Message, error) {
 		data, err := proto.Marshal(m)
 		if err != nil {
 			return nil, err
@@ -45,7 +45,7 @@ func NewRequestFunc(nc *nats.Conn, subject string) HandlerFunc {
 // receivers.  Note that when using PublishOnly, the response object will always be nil.
 func PublishOnly(nc *nats.Conn, subject string) Filter {
 	return func(fn HandlerFunc) HandlerFunc {
-		return func(ctx context.Context, m *Message) (*Message, error) {
+		return func(ctx context.Context, _ string, m *Message) (*Message, error) {
 			data, err := proto.Marshal(m)
 			if err != nil {
 				return nil, err
@@ -58,7 +58,7 @@ func PublishOnly(nc *nats.Conn, subject string) Filter {
 
 // NewPublishFunc generates a new HandlerFunc that uses nats.Publish
 func NewPublishFunc(nc *nats.Conn, subject string) HandlerFunc {
-	return func(ctx context.Context, m *Message) (*Message, error) {
+	return func(ctx context.Context, _ string, m *Message) (*Message, error) {
 		data, err := proto.Marshal(m)
 		if err != nil {
 			return nil, err

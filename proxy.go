@@ -35,7 +35,7 @@ func marshal(r io.ReadCloser, name string, in proto.Message) (*Message, error) {
 	}, nil
 }
 
-func newTransport(h HandlerFunc, mapper Mapper) http.RoundTripper {
+func newTransport(subject string, h HandlerFunc, mapper Mapper) http.RoundTripper {
 	return rtFunc(func(req *http.Request) (*http.Response, error) {
 		name := req.URL.Path
 		if index := strings.LastIndex(req.URL.Path, "/"); index >= 0 {
@@ -54,7 +54,7 @@ func newTransport(h HandlerFunc, mapper Mapper) http.RoundTripper {
 			return nil, err
 		}
 
-		msgOut, err := h(req.Context(), msgIn)
+		msgOut, err := h(req.Context(), subject, msgIn)
 		if err != nil {
 			return nil, err
 		}
@@ -101,7 +101,7 @@ func NewProxy(nc *nats.Conn, subject string, mapper Mapper, filters ...Filter) h
 		fn = filter(fn)
 	}
 
-	transport := newTransport(fn, mapper)
+	transport := newTransport(subject, fn, mapper)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		resp, err := transport.RoundTrip(req)

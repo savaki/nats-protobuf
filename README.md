@@ -91,14 +91,14 @@ Both ```Listen``` and ```New*``` accept an optional list of middleware
 filters to apply.  The filters need to implement:
 
 ```go
-func(fn func(context.Context, *Message) error) func(context.Context, *Message) error
+func(fn func(ctx context.Context, subject string, m *Message) error) func(ctx context.Context, subject string, m *Message) error
 ```
 
 For example, if we want to print out the elapsed execution time, we could write a timer as follows: 
 
 ```go
 func Timer(fn nats_protobuf.HandlerFunc) nats_protobuf.HandlerFunc {
-	return func(ctx context.Context, msg *nats_protobuf.Message) error {
+	return func(ctx context.Context, subject string, msg *nats_protobuf.Message) error {
 		started := time.Now()
 		defer func() {
 			fmt.Println("elapsed:", time.Now().Sub(started))

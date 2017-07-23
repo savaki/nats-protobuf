@@ -27,9 +27,12 @@ func (c *rpcClient) InOut(ctx context.Context, in *In) (*Out, error) {
 		return nil, err
 	}
 
-	reply, err := c.fn(ctx, message)
+	reply, err := c.fn(ctx, c.subject, message)
 	if err != nil {
 		return nil, err
+	}
+	if reply == nil {
+		return nil, nil
 	}
 
 	result := &Out{}
@@ -67,7 +70,7 @@ func SubscribeRPC(ctx context.Context, nc *nats.Conn, subject, queue string, ser
 		}
 	}
 
-	fn := func(ctx context.Context, m *nats_protobuf.Message) (*nats_protobuf.Message, error) {
+	fn := func(ctx context.Context, subject string, m *nats_protobuf.Message) (*nats_protobuf.Message, error) {
 		switch m.Method {
 
 		case "InOut":
@@ -101,13 +104,13 @@ func SubscribeRPC(ctx context.Context, nc *nats.Conn, subject, queue string, ser
 				return
 			}
 
-			if msg.Reply == "" {
+			v, err := fn(ctx, subject, req)
+			if err != nil {
+				publishErr(msg.Reply, err)
 				return
 			}
 
-			v, err := fn(ctx, req)
-			if err != nil {
-				publishErr(msg.Reply, err)
+			if msg.Reply == "" {
 				return
 			}
 
